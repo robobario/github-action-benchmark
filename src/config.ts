@@ -24,6 +24,7 @@ export interface Config {
     alertCommentCcUsers: string[];
     externalDataJsonPath: string | undefined;
     maxItemsInChart: number | null;
+    commitRef: string | undefined;
 }
 
 export const VALID_TOOLS = [
@@ -226,6 +227,7 @@ export async function configFromJobInput(): Promise<Config> {
     let benchmarkDataDirPath: string = core.getInput('benchmark-data-dir-path');
     const name: string = core.getInput('name');
     const githubToken: string | undefined = core.getInput('github-token') || undefined;
+    const commitRef: string | undefined = core.getInput('commit-ref') || undefined;
     const autoPush = getBoolInput('auto-push');
     const skipFetchGhPages = getBoolInput('skip-fetch-gh-pages');
     const commentAlways = getBoolInput('comment-always');
@@ -284,5 +286,6 @@ export async function configFromJobInput(): Promise<Config> {
         externalDataJsonPath,
         maxItemsInChart,
         failThreshold,
+        commitRef
     };
 }

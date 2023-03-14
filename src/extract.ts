@@ -252,13 +252,13 @@ function getCommitFromPullRequestPayload(pr: PullRequest): Commit {
     };
 }
 
-async function getCommitFromGitHubAPIRequest(githubToken: string): Promise<Commit> {
+async function getCommitFromGitHubAPIRequest(githubToken: string, commitRef?: string): Promise<Commit> {
     const octocat = new github.GitHub(githubToken);
 
     const { status, data } = await octocat.repos.getCommit({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        ref: github.context.ref,
+        ref: commitRef || github.context.ref,
     });
 
     if (!(status === 200 || status === 304)) {
@@ -285,7 +285,7 @@ async function getCommitFromGitHubAPIRequest(githubToken: string): Promise<Commi
     };
 }
 
-async function getCommit(githubToken?: string): Promise<Commit> {
+async function getCommit(githubToken?: string, commitRef?: string): Promise<Commit> {
     if (github.context.payload.head_commit) {
         return github.context.payload.head_commit;
     }
@@ -306,7 +306,7 @@ async function getCommit(githubToken?: string): Promise<Commit> {
         );
     }
 
-    return getCommitFromGitHubAPIRequest(githubToken);
+    return getCommitFromGitHubAPIRequest(githubToken, commitRef);
 }
 
 function extractCargoResult(output: string): BenchmarkResult[] {
@@ -670,7 +670,7 @@ function extractLuauBenchmarkResult(output: string): BenchmarkResult[] {
 
 export async function extractResult(config: Config): Promise<Benchmark> {
     const output = await fs.readFile(config.outputFilePath, 'utf8');
-    const { tool, githubToken } = config;
+    const { tool, githubToken, commitRef } = config;
     let benches: BenchmarkResult[];
 
     switch (tool) {
@@ -719,7 +719,7 @@ export async function extractResult(config: Config): Promise<Benchmark> {
         throw new Error(`No benchmark result was found in ${config.outputFilePath}. Benchmark output was '${output}'`);
     }
 
-    const commit = await getCommit(githubToken);
+    const commit = await getCommit(githubToken, commitRef);
 
     return {
         commit,
